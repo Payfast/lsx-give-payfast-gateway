@@ -1,3 +1,5 @@
+# lsx-give-payfast-gateway
+
 <p align="center"><a target="_blank" href="https://lsx.lsdev.biz/"><img width="100px;" src="https://lsx.lsdev.biz/wp-content/uploads/2019/03/givewp-payfast-integration.png" alt="LSX PayFast Gateway for Give Extension"></a>
 </p>
 <h1 align="center">LSX PayFast Gateway for Give</h1>
