@@ -1,5 +1,13 @@
 # Change log
 
+## [[1.3.0]](https://github.com/lightspeeddevelopment/lsx-give-payfast-gateway/releases/tag/1.3.0) - 2024-07-30
+
+### Added
+- Integrate the Payfast common class for modules v1.1.0.
+- Update PayFast -> Payfast.
+- General testing to ensure compatibility with latest Give - Donation Plugin version (3.13.0).
+- General testing to ensure compatibility with PHP 8.0+.
+
 ## [[1.2.8]](https://github.com/lightspeeddevelopment/lsx-give-payfast-gateway/releases/tag/1.2.8) - 2023-08-09
 
 ### Security
@@ -93,7 +101,7 @@
 - Added support for passphrase.
 
 ### Fixed
-- Corrected the format of the email address when sent to PayFast.
+- Corrected the format of the email address when sent to Payfast.
 
 
 ## [[1.0.0]]()

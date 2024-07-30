@@ -19,7 +19,7 @@ msgid "South African Rand (R)"
 msgstr ""
 
 #: ../give-payfast.php:61
-msgid "PayFast"
+msgid "Payfast"
 msgstr ""
 
 #: ../give-payfast.php:88
@@ -32,11 +32,11 @@ msgstr ""
 
 #: ../give-payfast.php:260
 #, php-format
-msgid "PayFast Payment Completed. The Transaction Id is %s."
+msgid "Payfast Payment Completed. The Transaction Id is %s."
 msgstr ""
 
 #: ../give-payfast.php:277
-msgid "PayFast Settings"
+msgid "Payfast Settings"
 msgstr ""
 
 #: ../give-payfast.php:278
@@ -44,19 +44,19 @@ msgid "Configure the gateway settings"
 msgstr ""
 
 #: ../give-payfast.php:283
-msgid "PayFast Merchant Id"
+msgid "Payfast Merchant Id"
 msgstr ""
 
 #: ../give-payfast.php:284
 msgid ""
-"Please enter your PayFast Merchant Id; this is needed in order to take "
+"Please enter your Payfast Merchant Id; this is needed in order to take "
 "payment."
 msgstr ""
 
 #: ../give-payfast.php:290
-msgid "PayFast Key"
+msgid "Payfast Key"
 msgstr ""
 
 #: ../give-payfast.php:291
-msgid "Please enter your PayFast Key; this is needed in order to take payment."
+msgid "Please enter your Payfast Key; this is needed in order to take payment."
 msgstr ""

@@ -6,7 +6,7 @@
  * @author    LightSpeed
  * @license   GPL-3.0+
  * @link
- * @copyright 2018 LightSpeed Team
+ * @copyright 2024 LightSpeed Team
  */
 
 // Exit if accessed directly
@@ -21,9 +21,9 @@ if ( ! class_exists( 'Give_Recurring_Gateway' ) ) {
 global $give_recurring_payfast;
 
 /**
- * Class Give_Recurring_PayFast
+ * Class Give_Recurring_Payfast
  */
-class Give_Recurring_PayFast extends Give_Recurring_Gateway {
+class Give_Recurring_Payfast extends Give_Recurring_Gateway {
 
 	/**
 	 * Setup gateway ID and possibly load API libraries.
@@ -59,7 +59,7 @@ class Give_Recurring_PayFast extends Give_Recurring_Gateway {
 	}
 
 	/**
-	 * Validate PayFast Recurring Donation Period
+	 * Validate Payfast Recurring Donation Period
 	 *
 	 * @description: Additional server side validation for Standard recurring
 	 *
@@ -70,8 +70,8 @@ class Give_Recurring_PayFast extends Give_Recurring_Gateway {
 	function validate_recurring_period( $form_id = 0 ) {
 
 		global $post;
-		$recurring_option = isset( $_REQUEST['_give_recurring'] ) ? $_REQUEST['_give_recurring'] : 'no';
-		$set_or_multi     = isset( $_REQUEST['_give_price_option'] ) ? $_REQUEST['_give_price_option'] : '';
+		$recurring_option = $_REQUEST['_give_recurring'] ?? 'no';
+		$set_or_multi     = $_REQUEST['_give_price_option'] ?? '';
 
 		// Sanity Checks.
 		if ( ! class_exists( 'Give_Recurring' ) ) {
@@ -98,30 +98,9 @@ class Give_Recurring_PayFast extends Give_Recurring_Gateway {
 			return $form_id;
 		}
 
-		$message = __( 'PayFast Only allows for Monthly and Yearly recurring donations. Please revise your selection.', 'give-recurring' );
+		$message = __( 'Payfast Only allows for Monthly and Yearly recurring donations. Please revise your selection.', 'give-recurring' );
 
-		if ( 'yes_admin' == $set_or_multi && 'multi' == $recurring_option ) {
-
-			$prices = isset( $_REQUEST['_give_donation_levels'] ) ? $_REQUEST['_give_donation_levels'] : array( '' );
-			foreach ( $prices as $price_id => $price ) {
-				$period = isset( $price['_give_period'] ) ? $price['_give_period'] : 0;
-
-				if ( in_array( $period, array( 'day', 'week' ) ) ) {
-					wp_die( esc_html( $message ), esc_html__( 'Error', 'give-recurring' ), array(
-						'response' => 400,
-					) );
-				}
-			}
-		} elseif ( Give_Recurring()->is_recurring( $form_id ) ) {
-
-			$period = isset( $_REQUEST['_give_period'] ) ? $_REQUEST['_give_period'] : 0;
-
-			if ( in_array( $period, array( 'day', 'week' ) ) ) {
-				wp_die( esc_html( $message ) , esc_html__( 'Error', 'give-recurring' ), array(
-					'response' => 400,
-				) );
-			}
-		}
+		$this->setOrMulti( $set_or_multi, $recurring_option, $message, $form_id );
 
 		return $form_id;
 
@@ -163,7 +142,7 @@ class Give_Recurring_PayFast extends Give_Recurring_Gateway {
 		// array of the data that will be sent to the API for use in the signature generation
 		// amount, item_name, & item_description must be added here when performing an update call.
 		$hash_array = array(
-			'merchant-id' => '10003644',
+			'merchant-id' => $give_options['payfast_customer_id'],
 			'version'     => 'v1',
 			'timestamp'   => date( 'Y-m-d' ) . 'T' . date( 'H:i:s' ),
 		);
@@ -197,7 +176,7 @@ class Give_Recurring_PayFast extends Give_Recurring_Gateway {
 		$signature = md5( $pf_param_string );
 
 		// payload array - required for update call (body values are amount, frequency, date).
-		$payload = []; // used for CURLOPT_POSTFIELDS.
+		$payload = array(); // used for CURLOPT_POSTFIELDS.
 
 		// set up the url.
 		$url = 'https://api.payfast.co.za/subscriptions/' . $subscription->profile_id . '/cancel';
@@ -205,40 +184,44 @@ class Give_Recurring_PayFast extends Give_Recurring_Gateway {
 			$url .= '?testing=true';
 		}
 
-		// set up cURL.
-		$ch = curl_init( $url ); // add "?testing=true" to the end when testing.
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $ch, CURLOPT_HEADER, false );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
-		curl_setopt( $ch, CURLOPT_TIMEOUT, 60 );
-		curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'PUT' );
-		curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query( $payload ) ); // for the body values such as amount, frequency, & date.
-		curl_setopt( $ch, CURLOPT_VERBOSE, true );
-		curl_setopt(
-			$ch, CURLOPT_HTTPHEADER, array(
-				'version: v1',
-				'merchant-id: 10003644',
-				'signature: ' . $signature,
-				'timestamp: ' . $hash_array['timestamp'],
-			)
+		// Set up the headers.
+		$headers = array(
+			'version'     => 'v1',
+			'merchant-id' => $give_options['payfast_customer_id'],
+			'signature'   => $signature,
+			'timestamp'   => $hash_array['timestamp'],
 		);
 
-		// execute and close cURL.
-		$data = curl_exec( $ch );
-		curl_close( $ch );
+		// Set up the arguments.
+		$args = array(
+			'method'    => 'PUT',
+			'timeout'   => 60,
+			'headers'   => $headers,
+			'body'      => http_build_query( $payload ),
+			'sslverify' => true,
+		);
 
-		$data = json_decode( $data );
+		// Make the request.
+		$response = wp_remote_request( $url, $args );
 
-		if ( '200' === isset( $data->code ) && $data->code ) {
+		// Check for errors.
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		// Decode the response body.
+		$data = json_decode( wp_remote_retrieve_body( $response ) );
+
+		// Check the response code.
+		if ( isset( $data->code ) && $data->code === '200' ) {
 			return true;
 		} else {
 			return false;
 		}
-
 	}
 
 	/**
-	 * Creates payment and redirects to PayFast
+	 * Creates payment and redirects to Payfast
 	 *
 	 * @access public
 	 * @since  1.0
@@ -247,5 +230,44 @@ class Give_Recurring_PayFast extends Give_Recurring_Gateway {
 	public function complete_signup() {
 		$subscription = new Give_Subscription( $this->subscriptions['profile_id'], true );
 		payfast_process_payment( $this->purchase_data, $subscription );
+	}
+
+	/**
+	 * @param $set_or_multi
+	 * @param $recurring_option
+	 * @param $message
+	 * @param int              $form_id
+	 *
+	 * @return void
+	 */
+	public function setOrMulti( $set_or_multi, $recurring_option, $message, int $form_id ): void {
+		if ( $set_or_multi == 'yes_admin' && $recurring_option == 'multi' ) {
+			$prices = $_REQUEST['_give_donation_levels'] ?? array( '' );
+			foreach ( $prices as $price_id => $price ) {
+				$period = $price['_give_period'] ?? 0;
+
+				if ( in_array( $period, array( 'day', 'week' ) ) ) {
+					wp_die(
+						esc_html( $message ),
+						esc_html__( 'Error', 'give-recurring' ),
+						array(
+							'response' => 400,
+						)
+					);
+				}
+			}
+		} elseif ( Give_Recurring()->is_recurring( $form_id ) ) {
+			$period = $_REQUEST['_give_period'] ?? 0;
+
+			if ( in_array( $period, array( 'day', 'week' ) ) ) {
+				wp_die(
+					esc_html( $message ),
+					esc_html__( 'Error', 'give-recurring' ),
+					array(
+						'response' => 400,
+					)
+				);
+			}
+		}
 	}
 }

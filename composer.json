@@ -1,6 +1,6 @@
 {
     "name": "lightspeeddevelopment/lsx-give-payfast-gateway",
-    "description": "LSX PayFast Payment Gateway for Give.",
+    "description": "LSX Payfast Payment Gateway for Give.",
     "type": "wordpress-plugin",
     "require": {
         "php": ">=7.2",
